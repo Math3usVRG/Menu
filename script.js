@@ -1,193 +1,185 @@
+// Captura elementos do DOM
+const cardapio = document.getElementById("menu");
+const botaoCarrinho = document.getElementById("cart-btn");
+const modalCarrinho = document.getElementById("cart-modal");
+const itensCarrinhoContainer = document.getElementById("cart-items");
+const totalCarrinho = document.getElementById("cart-total");
+const botaoFinalizar = document.getElementById("checkout-btn");
+const botaoFecharModal = document.getElementById("close-modal-btn");
+const contadorCarrinho = document.getElementById("cart-count");
+const inputEndereco = document.getElementById("address");
+const avisoEndereco = document.getElementById("address-warn");
+const botoesAdicionarCarrinho = document.getElementsByClassName("add-to-cart-btn");
+const indicadorHorario = document.getElementById("date-span");
 
+// Inicializa o carrinho e pedido
+let carrinho = [];
 
-const menu = document.getElementById("menu");
-const cartBtn = document.getElementById("cart-btn")
-const cartModal = document.getElementById("cart-modal")
-const container = document.getElementById("cart-items")
-const cartTotal = document.getElementById("cart-total")
-const checkoutBtn = document.getElementById("checkout-btn")
-const closeModalBtn = document.getElementById("close-modal-btn")
-const cartCounter = document.getElementById("cart-count")
-const addressInput = document.getElementById("address")
-const addressWarn = document.getElementById("address-warn")
-const addCart = document.getElementsByClassName("add-to-cart-btn")
-const horario = document.getElementById("date-span")
+// Evento para abrir o modal do carrinho
+botaoCarrinho.addEventListener("click", function() {
+    atualizarCarrinho(); // Atualiza os itens do carrinho antes de abrir o modal
+    modalCarrinho.style.display = "flex"; // Exibe o modal
+});
 
-let cart = []
-let pedido = {}
-//Abrir modal do carrinho 
-cartBtn.addEventListener("click", function() {
-    updateCart()
-    cartModal.style.display= "flex"
+// Evento para fechar o modal ao clicar no botão de fechar
+botaoFecharModal.addEventListener("click", function () {
+    modalCarrinho.style.display = "none"; // Esconde o modal
+});
 
-})
-//Remover Item do carrinho
-
-//Fechar a modal do carrinho
-closeModalBtn.addEventListener("click", function () {
-    cartModal.style.display = "none"
-})
-
-cartModal.addEventListener("click",function (event) {
-    if(event.target === cartModal){
-        cartModal.style.display = "none"
+// Fecha o modal ao clicar fora do conteúdo principal
+modalCarrinho.addEventListener("click", function(event) {
+    if(event.target === modalCarrinho){
+        modalCarrinho.style.display = "none"; // Esconde o modal
     }
-})
-//Adicionar items no carrinhos
-menu.addEventListener("click",function (event) {
-    let prentButton = event.target.closest(".add-to-cart-btn")
-    if (prentButton){
-        const name = prentButton.getAttribute("data-name")
-        const price = parseFloat(prentButton.getAttribute("data-price"))
-        addToCart(name,price)
+});
+
+// Adiciona itens ao carrinho ao clicar nos botões correspondentes
+cardapio.addEventListener("click", function(event) {
+    let botaoAdicionar = event.target.closest(".add-to-cart-btn");
+    if (botaoAdicionar) {
+        const nome = botaoAdicionar.getAttribute("data-name");
+        const preco = parseFloat(botaoAdicionar.getAttribute("data-price"));
+        adicionarAoCarrinho(nome, preco); // Chama a função para adicionar o item ao carrinho
     }
-})
+});
 
-//Adicionar no carrinho
-
-function addToCart (name,price){
-    const itemExistente = cart.find(item => item.name === name)
-    if (itemExistente){
-        itemExistente.quantidade += 1
-        
+// Função para adicionar itens ao carrinho
+function adicionarAoCarrinho(nome, preco) {
+    const itemExistente = carrinho.find(item => item.nome === nome);
+    if (itemExistente) {
+        itemExistente.quantidade += 1; // Incrementa a quantidade se o item já estiver no carrinho
     } else {
-        cart.push({
-            name,
-            price,
+        carrinho.push({
+            nome,
+            preco,
             quantidade: 1,
-        })
-        
+        }); // Adiciona o item novo ao carrinho
     }
-    numItens()
+    atualizarContadorItens(); // Atualiza o contador de itens
 }
 
-//Atualiza carrinho
-
-function updateCart (){
-    container.innerHTML = ""
-    let total = 0
-    cart.forEach(items => {
-        const itemsCart = document.createElement("div")
-        itemsCart.classList.add("flex" , "justify-betwenn", "mb-4", "flex-col")
+// Função para atualizar a exibição dos itens no carrinho
+function atualizarCarrinho() {
+    itensCarrinhoContainer.innerHTML = ""; // Limpa o conteúdo atual
+    let total = 0;
+    carrinho.forEach(item => {
+        const itemCarrinho = document.createElement("div");
+        itemCarrinho.classList.add("flex", "justify-betwenn", "mb-4", "flex-col");
         
-        itemsCart.innerHTML = `
+        // Cria o conteúdo HTML para cada item do carrinho
+        itemCarrinho.innerHTML = `
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="font-medium item-name">${items.name}</p>
-                    <p>Qtd:${items.quantidade}</p>
-                    <p class="font-medium mt-2">R$ ${items.price.toFixed(2)}</p>
-            
+                    <p class="font-medium item-name">${item.nome}</p>
+                    <p>Qtd: ${item.quantidade}</p>
+                    <p class="font-medium mt-2">R$ ${item.preco.toFixed(2)}</p>
                 </div>
-                <button class="bg-red-500 text-white  px-4 py-1 rounded remover" data-name="${items.name}">
-                Remover
+                <button class="bg-red-500 text-white px-4 py-1 rounded remover" data-name="${item.nome}">
+                    Remover
                 </button>
             </div>
-        `
-        total += items.price*items.quantidade
-        container.appendChild(itemsCart)
-    })
-    cartTotal.textContent = total.toLocaleString("pt-BR", {
+        `;
+        total += item.preco * item.quantidade; // Calcula o total do carrinho
+        itensCarrinhoContainer.appendChild(itemCarrinho); // Adiciona o item ao container
+    });
+    totalCarrinho.textContent = total.toLocaleString("pt-BR", {
         style: "currency",
         currency: "BRL"
-    })
-    numItens()
-    
+    }); // Exibe o valor total formatado
+    atualizarContadorItens(); // Atualiza o contador de itens
 }
 
-container.addEventListener("click",function (event) {
-    if(event.target.classList.contains("remover")){
-        const name = event.target.getAttribute("data-name")
-        remove(name)
+// Evento para remover itens do carrinho
+itensCarrinhoContainer.addEventListener("click", function(event) {
+    if(event.target.classList.contains("remover")) {
+        const nome = event.target.getAttribute("data-name");
+        removerItem(nome); // Chama a função para remover o item
     }
+});
 
-})
-
-addressInput.addEventListener("input",function(event){
-    let inputValue = event.target.value
-    if(inputValue !== ""){
-        addressInput.classList.remove("border-red-500")
-        addressWarn.classList.add("hidden")
+// Valida o campo de endereço ao digitar
+inputEndereco.addEventListener("input", function(event) {
+    let valorInput = event.target.value;
+    if(valorInput !== "") {
+        inputEndereco.classList.remove("border-red-500");
+        avisoEndereco.classList.add("hidden");
     }
-})
+});
 
-
-checkoutBtn.addEventListener("click",function () {
-    if (!checkHorario()){
+// Evento para finalizar o pedido
+botaoFinalizar.addEventListener("click", function () {
+    if (!verificarHorario()) {
+        // Exibe uma notificação se o restaurante estiver fechado
         Toastify({
             text: "Ops o restaurante está fechado !!",
             duration: 3000,
             close: true,
-            gravity: "top", // `top` or `bottom`
-            position: "right", // `left`, `center` or `right`
-            stopOnFocus: true, // Prevents dismissing of toast on hover
+            gravity: "top",
+            position: "right",
+            stopOnFocus: true,
             style: {
               background: "#ef4444",
             },
-          }).showToast();
-        return
-
+        }).showToast();
+        return;
     }
 
-    if (cart.length === 0)return
+    if (carrinho.length === 0) return; // Verifica se o carrinho está vazio
 
-    if (addressInput.value === ""){
-       addressWarn.classList.remove("hidden")
-       addressInput.classList.add("border-red-500")
-       return
+    if (inputEndereco.value === "") {
+       avisoEndereco.classList.remove("hidden");
+       inputEndereco.classList.add("border-red-500");
+       return; // Verifica se o endereço foi preenchido
     }
-    const stringCarrinho = cart.map( i => {
-        `${i.name} : ${i.quantidade} |`
-    }).join("")
-    
-    const mensage = encodeURIComponent(stringCarrinho)
-    const telefone = "7996344181"
-    
-    window.open(`https://wa.me/${telefone}?text=${mensage} Total: ${cartTotal.textContent} Endereço: ${addressInput.value}`, "_blank" )
-    
-    cart = []
-    updateCart()
-})
 
+    // Prepara a mensagem com os itens do carrinho
+    const carrinhoFormatado = carrinho.map(item => {
+        return `${item.nome} : ${item.quantidade} |`;
+    }).join("");
 
-if (checkHorario()){
-    horario.classList.remove("bg-red-500")
-    horario.classList.add("bg-green-600")
+    const mensagem = encodeURIComponent(carrinhoFormatado);
+    const telefone = "7996344181";
+    
+    // Abre o WhatsApp com a mensagem formatada
+    window.open(`https://wa.me/${telefone}?text=${mensagem} Total: ${totalCarrinho.textContent} Endereço: ${inputEndereco.value}`, "_blank");
+    
+    carrinho = []; // Limpa o carrinho após o pedido
+    atualizarCarrinho(); // Atualiza o carrinho
+});
+
+// Atualiza o indicador de horário de funcionamento
+if (verificarHorario()) {
+    indicadorHorario.classList.remove("bg-red-500");
+    indicadorHorario.classList.add("bg-green-600");
 } else {
-    horario.classList.remove("bg-green-600")
-    horario.classList.add("bg-red-500")
+    indicadorHorario.classList.remove("bg-green-600");
+    indicadorHorario.classList.add("bg-red-500");
 }
 
-const stringCarrinho = cart.map( i => {
-    `${i.name} : ${i.quantidade} |`
-}).join("")
-
-
-
-
-function remove (name) {
-    const index = cart.findIndex(i => i.name === name)
-    if (index !== -1){
-        const item = cart[index]
-        if (item.quantidade > 1){
-            item.quantidade -=1
-            updateCart()
-            return
-        } 
-        cart.splice(index,1)
-        updateCart()   
+// Função para remover itens do carrinho
+function removerItem(nome) {
+    const index = carrinho.findIndex(item => item.nome === nome);
+    if (index !== -1) {
+        const item = carrinho[index];
+        if (item.quantidade > 1) {
+            item.quantidade -= 1; // Decrementa a quantidade se houver mais de 1
+            atualizarCarrinho();
+            return;
+        }
+        carrinho.splice(index, 1); // Remove o item do array se restar apenas 1
+        atualizarCarrinho();
     }
 }
 
-
-function numItens() {
-    const quantidade = cart.reduce((acc,item) => acc + item.quantidade, 0)
-    const count = document.getElementById("cart-count")
-    count.innerHTML = quantidade
+// Função para atualizar o número de itens no carrinho
+function atualizarContadorItens() {
+    const quantidade = carrinho.reduce((acc, item) => acc + item.quantidade, 0);
+    contadorCarrinho.innerHTML = quantidade; // Atualiza o contador de itens no DOM
 }
 
-function checkHorario (){
-    const date = new Date()
-    const hora = date.getHours()
-    return hora >= 18 && hora <= 23
+// Função para verificar o horário de funcionamento
+function verificarHorario() {
+    const dataAtual = new Date();
+    const horaAtual = dataAtual.getHours();
+    return horaAtual >= 18 && horaAtual <= 23; // Verifica se o horário é entre 18h e 23h
 }
-
